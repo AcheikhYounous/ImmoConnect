@@ -11,6 +11,11 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
+import os # Pour la gestion des chemins de fichiers
+from django.contrib.messages import constants as messages # Pour la gestion des messages flash
+from django.utils.translation import gettext_lazy as _ # Pour la traduction des chaînes de caractères/langue
+from decouple import config # Pour la gestion des variables d'environnement. je préfère decouple à os.environ pour sa simplicité et sa facilité d'utilisation.
+import dj_database_url # Pour la gestion des bases de données via des URL, pratique pour les déploiements sur des plateformes comme d'hebergement cloud.
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,12 +25,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-$#9n*^n8-z9j$r6&112lr6&7&l8&)q*$=#3&5==*u05oi)yamw'
+SECRET_KEY = config('SECRET_KEY') # Récupère la clé secrète depuis le fichier .env
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -37,10 +42,27 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    
+    # # C'est une bibliotheque qui sert a importer et exporter des donnees en excel, csv et autres.
+    "import_export",
+
+    # Pour pouvoir y acceder via une API Rest
+    'rest_framework', # framework pour construire des APIs
+    'rest_framework.authtoken',  # pour authentification token si besoin
+    'corsheaders', # pour gérer les requêtes cross-origin
+
+    # Mes applications
+    'users',
+    'properties',
+    'core',
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',  # Pour autoriser explicitement les requêtes provenant des API
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware', # Pour servir les fichiers statiques en production
+    'django.middleware.locale.LocaleMiddleware',  # Middleware pour la gestion des langues
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -54,7 +76,7 @@ ROOT_URLCONF = 'ImmoConnect.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / "templates"],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -73,12 +95,24 @@ WSGI_APPLICATION = 'ImmoConnect.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
+# Exemple de configuration pour PostgreSQL
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'immoconnect_base', # Nom de la base de données
+        'USER': 'postgres', # Nom d'utilisateur de la base de données
+        'PASSWORD': '12345678', # Mot de passe de la base de données
+        'HOST': '127.0.0.1', # Adresse de l'hôte de la base de données
+        'PORT': '5432', # Port par defaut de postgresql Mais à adapter si besoin
     }
 }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
 
 
 # Password validation
@@ -103,21 +137,102 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'fr-FR'
 
 TIME_ZONE = 'UTC'
 
 USE_I18N = True
 
 USE_TZ = True
+USE_L10N = True
 
+# Ajoutez les langues supportées par l'application
+LANGUAGES = [
+    ('fr', _('French')),
+    ('ar', _('Arabic')),
+]
+
+# Chemins vers les fichiers de traduction
+LOCALE_PATHS = [
+    os.path.join(BASE_DIR, 'locale'),  # Dossier pour les fichiers de traduction
+]
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = 'static/'
+if DEBUG==True:
+    STATICFILES_DIRS = [
+        BASE_DIR / 'static',
+    ]
+else:
+    STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+MEDIA_URL = "/media/"
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Configuration des messages flash
+MESSAGE_TAGS = {
+    messages.DEBUG: 'debug',
+    messages.INFO: 'info',
+    messages.SUCCESS: 'success',
+    messages.WARNING: 'warning',
+    messages.ERROR: 'danger',
+}
+
+# Configuration de l'email
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+# Configuration pour les uploads de fichiers volumineux
+DATA_UPLOAD_MAX_MEMORY_SIZE = 52428800  # 50 MB, à ajuster selon tes besoins
+
+# Configuration des origines de confiance pour les requêtes CSRF. Cette liste doit être remplie avec les domaines autorisés en production.
+CSRF_TRUSTED_ORIGINS = [
+
+]
+
+# Configuration CORS pour autoriser les requêtes cross-origin. En développement, on peut tout autoriser, mais en production, il faut restreindre cette liste.
+CORS_ALLOW_ALL_ORIGINS = True
+
+CORS_ALLOW_METHODS = [
+    'GET',
+    'POST',
+    'PUT',
+    'DELETE',
+    'OPTIONS'
+]
+
+# Configuration des URLs de redirection après connexion et déconnexion
+# LOGIN_URL = 'users:login' # Nom de la route pour la page de connexion 
+# LOGIN_REDIRECT_URL = '' # URL de redirection après connexion réussie
+# LOGOUT_REDIRECT_URL = LOGIN_URL # URL de redirection après déconnexion
+
+
+# Configuration du logging pour enregistrer les erreurs dans un fichier log
+# LOGGING = {
+#     'version': 1,
+#     'disable_existing_loggers': False,
+#     'handlers': {
+#         'file': {
+#             'level': 'ERROR',
+#             'class': 'logging.FileHandler',
+#             'filename': os.path.join(BASE_DIR, 'errors.log'),  # Spécifiez l'emplacement du fichier de logs
+#         },
+#     },
+#     'loggers': {
+#         'django': {
+#             'handlers': ['file'],
+#             'level': 'ERROR',
+#             'propagate': True,
+#         },
+#     },
+# }
