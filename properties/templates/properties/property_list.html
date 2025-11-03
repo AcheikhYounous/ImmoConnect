@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="container mt-4">
+  <h2>Liste des propriétés</h2>
+  <a href="{% url 'properties:add_property' %}" class="btn btn-primary mb-3">+ Ajouter un bien</a>
+
+  <div class="row">
+    {% for prop in properties %}
+      <div class="col-md-4 mb-3">
+        <div class="card h-100 shadow-sm">
+            {% if prop.main_image %}
+                <img src="{{ prop.main_image.url }}" class="card-img-top" alt="{{ prop.title }}">
+            {% else %}
+                <img src="{% static 'images/default.jpg' %}" class="card-img-top" alt="Pas d'image">
+            {% endif %}
+          <div class="card-body">
+            <h5 class="card-title">{{ prop.title }}</h5>
+            <p class="card-text">{{ prop.location }}</p>
+            <p><strong>{{ prop.price }} FCFA</strong></p>
+            <a href="{% url 'properties:edit_property' prop.id %}" class="btn btn-warning btn-sm">Modifier</a>
+            <a href="{% url 'properties:delete_property' prop.id %}" class="btn btn-danger btn-sm">Supprimer</a>
+          </div>
+        </div>
+      </div>
+    {% empty %}
+      <p class="text-muted">Aucune propriété pour l’instant.</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

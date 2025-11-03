@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <h2>{{ property.title }}</h2>
+    <p><strong>Localisation :</strong> {{ property.location }}</p>
+    <p><strong>Prix :</strong> {{ property.price }} FCFA</p>
+    <p><strong>Catégorie :</strong> {{ property.get_category_display }}</p>
+    <p>{{ property.description }}</p>
+
+    {% if images %}
+    <div class="row mt-3">
+        {% for image in images %}
+        <div class="col-md-4 mb-3">
+            <img src="{{ image.image.url }}" class="img-fluid rounded" alt="Image du bien">
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

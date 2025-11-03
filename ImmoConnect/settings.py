@@ -103,7 +103,7 @@ DATABASES = {
         'USER': 'postgres', # Nom d'utilisateur de la base de données
         'PASSWORD': '12345678', # Mot de passe de la base de données
         'HOST': '127.0.0.1', # Adresse de l'hôte de la base de données
-        'PORT': '5433', # 5432 Port par defaut de postgresql Mais à adapter si besoin, (MS: dans mon cas j'ai fais une erreur lors de l'installation de postgresql, du coup j'ai mis 5433)
+        'PORT': '5432', # 5432 Port par defaut de postgresql Mais à adapter si besoin, (MS: dans mon cas j'ai fais une erreur lors de l'installation de postgresql, du coup j'ai mis 5433)
     }
 }
 

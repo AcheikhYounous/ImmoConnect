@@ -29,5 +29,6 @@ from django.conf.urls import handler404, handler403, handler500 # Importer les g
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('users.urls', namespace='users')),  # URLs pour l'application des utilisateurs
+    path('properties/', include(('properties.urls', 'properties'), namespace='properties')), # URLs pour l'application des propriétés
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 urlpatterns += staticfiles_urlpatterns()

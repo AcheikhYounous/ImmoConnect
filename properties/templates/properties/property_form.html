@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <h2>{% if edit_mode %}Modifier{% else %}Ajouter{% endif %} une propriété</h2>
+  <form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-success">
+      {% if edit_mode %}Mettre à jour{% else %}Enregistrer{% endif %}
+    </button>
+    <a href="{% url 'properties:property_list' %}" class="btn btn-secondary">Annuler</a>
+  </form>
+</div>
+{% endblock %}
